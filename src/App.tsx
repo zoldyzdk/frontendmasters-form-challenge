@@ -10,6 +10,7 @@ function App() {
   const [month, setMonth] = useState('00');
   const [year, setYear] = useState('00');
   const [cvc, setCvc] = useState('000');
+  const [validChar, setValidChar] = useState(true);
 
   //Func to identify the actual size of the screen
   useEffect(() => {
@@ -26,60 +27,20 @@ function App() {
 
   interface formFields {
     name: string;
-    cardNumber: number;
-    month: number;
-    year: number;
-    cvc: number
+    cardNumber: string;
+    month: string;
+    year: string;
+    cvc: string
   }
-  // const handleOnChange = (value: string, id: string) => {
-  //
-  //
-  //
-  //     if (value == '') {
-  //       setMonth('00')
-  //       setYear('00')
-  //       setCvc('000')
-  //       console.log('segundo if')
-  //       return;
-  //     }
-  //
-  //     if (value == '' && value.length == 1) {
-  //       setName('Jane Appleseed')
-  //       setCardNumber('0000 0000 0000 0000')
-  //       console.log('passou aqui')
-  //       return
-  //     }
-  //
-  //     if (id == 'name') {
-  //       setName(name);
-  //     } else if (id == 'number') {
-  //       const mask = value
-  //           .replace(/\D/g, '')
-  //           .replace(/^(\d{4})(\d{0,4})/, '$1 $2')
-  //           .replace(/^(\d{4}\s)(\d{4})(\d{0,4})/, '$1$2 $3')
-  //           .replace(/^(\d{4}\s)(\d{4}\s)(\d{4})(\d{0,4})/, '$1$2$3 $4');
-  //       setCardNumber(mask);
-  //     } else if (id == 'month') {
-  //       setMonth(value);
-  //     } else if (id == 'year') {
-  //       setYear(value);
-  //     } else if (id == 'cvc') {
-  //       setCvc(value);
-  //     }
-  // };
-
 
   const handleChangeName = (e: string) => {
 
     setName(e);
-    // if (!e) {
-    //   console.log("Nao ha nada aqui!!")
-    // } else {
-    //   console.log(name)
-    // }
+
   };
 
   const handleChangeNumber = (e: any) => {
+
     setCardNumber(e);
   }
   const handleChangeMonth = (e: any) => {
@@ -90,6 +51,25 @@ function App() {
   }
   const handleChangeCvc = (e: any) => {
     setCvc(e)
+  }
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+
+    const formData: FormData = new FormData(e.target);
+
+    const formJson = Object.fromEntries(formData.entries())
+
+    const regexCardNumber: RegExp = /^[0-9_\s]+$/;
+    console.log(regexCardNumber.test(formJson.number.toString()))
+    if (!regexCardNumber.test(formJson.number.toString())) {
+      setValidChar(false)
+    } else {
+      setValidChar(true)
+    }
+
+    console.log(formJson)
+
   }
 
   return (
@@ -121,20 +101,22 @@ function App() {
           />
         </div>
         <div className="grid gap-5 z-30 absolute top-[121px] md:left-[11rem] md:top-[17rem] text-2xl text-white w-[410px]">
-          <span className="text-3xl">{cardNumber}</span>
+          <span className="text-3xl">{(!cardNumber) ? '0000 0000 0000 0000' : cardNumber}</span>
           <div className="flex justify-between text-base">
-            <span>{name}</span>
+            <span>{(!name) ? 'Jane Appleseed' : name}</span>
             <div className="flex">
-              <div>{month}</div>
+              <div>{(!month) ? '00' : month}</div>
               /
-              <div>{year}</div>
+              <div>{(!year) ? '00' : year}</div>
             </div>
           </div>
         </div>
         <div className="z-30 absolute top-24 right-12 md:left-[39rem] md:top-[31.5rem] text-xl text-white">
-          <span>{cvc}</span>
+          <span>{(!cvc) ? '000' : cvc}</span>
         </div>
-        <form className="flex flex-col items-center mt-20 gap-6 max-w-[300px] md:max-w-5xl ">
+        <form
+            onSubmit={handleSubmit}
+            className="flex flex-col items-center mt-20 gap-6 max-w-[300px] md:max-w-5xl ">
           {/*//todo COLOCAR FORM-GROUP PARA CADA GRUPO DE INPUTS*/}
           <label className="text-dark-violet flex flex-col">
             CARDHOLDER NAME
@@ -150,7 +132,8 @@ function App() {
           <label className="text-dark-violet flex flex-col">
             CARD NUMBER
             <InputMask
-              mask={"9999 9999 9999 9999"}
+              mask={"**** **** **** ****"}
+              // slotChar={"                   "}
               onChange={(e) => handleChangeNumber(e.target.value)}
               // value={(cardNumber == '0000 0000 0000 0000') ? '' : cardNumber}
               maxLength={19}
@@ -158,6 +141,13 @@ function App() {
               placeholder="e.g. 1234 5678 9123 0000"
               className=" border-2 border-solid w-80 h-11 rounded-lg text-base pl-3"
             />
+            {
+              (!validChar && <div
+                  className=" text-red-500">
+                Wrong format, numbers only
+              </div>)
+            }
+
           </label>
           {/*todo COLOCAR A SPAN DO ERRO DE DIGITACAO DO INPUT*/}
           <div className="flex w-80 border-box">
@@ -166,6 +156,7 @@ function App() {
               <div className="flex gap-[11px]">
                 <InputMask
                   mask={"99"}
+                  slotChar={"  "}
                   onChange={(e) => handleChangeMonth(e.target.value)}
                   name="month"
                   placeholder="MM"
@@ -174,6 +165,7 @@ function App() {
                 {/*todo COLOCAR A SPAN DO ERRO DE DIGITACAO DO INPUT*/}
                 <InputMask
                   mask={"99"}
+                  slotChar={"  "}
                   onChange={(e) => handleChangeYear(e.target.value)}
                   name="year"
                   placeholder="YY"
@@ -185,6 +177,7 @@ function App() {
               CVC
               <InputMask
                 mask={"999"}
+                slotChar={"   "}
                 onChange={(e) => handleChangeCvc(e.target.value)}
                 name="cvc"
                 placeholder="e.g. 123"
