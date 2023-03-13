@@ -13,6 +13,9 @@ function App() {
   const [validChar, setValidChar] = useState(true);
   const [validMonthYear, setValidMonthYear] = useState(true);
   const [validCvc, setValidCvc] = useState(true);
+  const [formHidden, setFormHidden] = useState('')
+  const [thankHidden, setThankHidden] = useState('hidden')
+  const [valid, setValid] = useState({validNumber: '', validMonth: '', validYear: '' })
 
   //Func to identify the actual size of the screen
   useEffect(() => {
@@ -26,14 +29,6 @@ function App() {
       window.removeEventListener('resize', handleWindowResize);
     };
   });
-
-  interface formFields {
-    name: string;
-    cardNumber: string;
-    month: string;
-    year: string;
-    cvc: string
-  }
 
   const handleChangeName = (e: string) => {
 
@@ -67,13 +62,16 @@ function App() {
     console.log(regexCardNumber.test(formJson.number.toString()))
     if (!regexCardNumber.test(formJson.number.toString())) {
       setValidChar(false)
+      setValid({validNumber: 'border-red-500', validMonth: valid.validMonth, validYear: valid.validYear})
     } else {
       setValidChar(true)
+      setValid({validNumber: '', validMonth: valid.validMonth, validYear: valid.validYear})
     }
 
     //Testing if inputs Month/Year are empty
-    if (!formJson.month) {
+    if (!formJson.month || !formJson.year) {
       setValidMonthYear(false)
+
     } else {
       setValidMonthYear(true)
     }
@@ -81,12 +79,22 @@ function App() {
     //Testing if input CVC is empty
     if (!formJson.cvc) {
       setValidCvc(false)
+
     } else {
       setValidCvc(true)
     }
 
+    if (!validChar && !validMonthYear && !validCvc) {
+      setFormHidden('hidden')
+      setThankHidden('block')
+    }
     console.log(formJson)
 
+  }
+
+  const handleContinue = () => {
+    setFormHidden('flex')
+    setThankHidden('hidden')
   }
 
   return (
@@ -118,22 +126,24 @@ function App() {
           />
         </div>
         <div className="grid gap-5 z-30 absolute top-[121px] md:left-[11rem] md:top-[17rem] text-2xl text-white w-[410px]">
-          <span className="text-3xl">{(!cardNumber) ? '0000 0000 0000 0000' : cardNumber}</span>
+          <span className="text-3xl">
+            {!cardNumber ? "0000 0000 0000 0000" : cardNumber}
+          </span>
           <div className="flex justify-between text-base">
-            <span>{(!name) ? 'Jane Appleseed' : name}</span>
+            <span>{!name ? "Jane Appleseed" : name}</span>
             <div className="flex">
-              <div>{(!month) ? '00' : month}</div>
-              /
-              <div>{(!year) ? '00' : year}</div>
+              <div>{!month ? "00" : month}</div>/
+              <div>{!year ? "00" : year}</div>
             </div>
           </div>
         </div>
         <div className="z-30 absolute top-24 right-12 md:left-[39rem] md:top-[31.5rem] text-xl text-white">
-          <span>{(!cvc) ? '000' : cvc}</span>
+          <span>{!cvc ? "000" : cvc}</span>
         </div>
         <form
-            onSubmit={handleSubmit}
-            className="flex flex-col items-center mt-20 gap-6 max-w-[300px] md:max-w-5xl ">
+          onSubmit={handleSubmit}
+          className={"flex flex-col items-center mt-20 gap-6 max-w-[300px] md:max-w-5xl " + formHidden}
+        >
           {/*//todo COLOCAR FORM-GROUP PARA CADA GRUPO DE INPUTS*/}
           <label className="text-dark-violet flex flex-col">
             CARDHOLDER NAME
@@ -153,15 +163,13 @@ function App() {
               maxLength={19}
               name="number"
               placeholder="e.g. 1234 5678 9123 0000"
-              className=" border-2 border-solid w-80 h-11 rounded-lg text-base pl-3"
+              className={valid.validNumber + " border-2 border-solid w-80 h-11 rounded-lg text-base pl-3 " }
             />
-            {
-              (!validChar && <div
-                  className=" text-red-500 mt-1">
+            {!validChar && (
+              <div className=" text-red-500 mt-1">
                 Wrong format, numbers only
-              </div>)
-            }
-
+              </div>
+            )}
           </label>
           {/*todo COLOCAR A SPAN DO ERRO DE DIGITACAO DO INPUT*/}
           <div className="flex w-80 border-box">
@@ -174,7 +182,7 @@ function App() {
                   onChange={(e) => handleChangeMonth(e.target.value)}
                   name="month"
                   placeholder="MM"
-                  className=" border-2 border-solid w-[4.5rem] h-11 rounded-lg text-base pl-3"
+                  className=" border-2 border-solid w-[4.5rem] h-11 rounded-lg text-base pl-3 "
                 />
                 {/*todo COLOCAR A SPAN DO ERRO DE DIGITACAO DO INPUT*/}
                 <InputMask
@@ -186,12 +194,9 @@ function App() {
                   className=" border-2 border-solid w-[4.5rem] h-11 rounded-lg text-base pl-3"
                 />
               </div>
-              {
-                (!validMonthYear && <div
-                    className=" text-red-500 mt-1">
-                  Can't be blank
-                </div>)
-              }
+              {!validMonthYear && (
+                <div className=" text-red-500 mt-1">Can't be blank</div>
+              )}
             </label>
             <label className="flex flex-col ml-2">
               CVC
@@ -201,25 +206,36 @@ function App() {
                 onChange={(e) => handleChangeCvc(e.target.value)}
                 name="cvc"
                 placeholder="e.g. 123"
-                className=" border-2 border-solid w-[10rem] h-11 rounded-lg text-base pl-3"
+                className={" border-2 border-solid w-[10rem] h-11 rounded-lg text-base pl-3 "}
               />
-              {
-                (!validCvc && <div
-                    className=" text-red-500 mt-1">
-                  Can't be blank
-                </div>)
-              }
+              {!validCvc && (
+                <div className=" text-red-500 mt-1">Can't be blank</div>
+              )}
             </label>
           </div>
           <div className="pb-8">
             <button
-              className=" text-white bg-dark-violet w-80 h-11 rounded-lg"
+              className=" text-white bg-dark-violet w-80 h-11 rounded-lg text-xl"
               type="submit"
             >
               Confirm
             </button>
           </div>
         </form>
+        <div className={" max-w-5xl text-center flex flex-col place-items-center gap-8 " + thankHidden}>
+          <div className="w-24">
+            <img
+              className=" w-full"
+              src="/icon-complete.svg"
+              alt="checked icon"
+            />
+          </div>
+          <h1 className=" text-4xl text-dark-violet">THANK YOU!</h1>
+          <div className=" text-dark-gray-violet text-">We've added your card details</div>
+          <button
+              onClick={() => document.location.reload()}
+              className=" mt-2 text-white text-xl bg-dark-violet w-80 h-11 rounded-lg">Continue</button>
+        </div>
       </div>
     </>
   );
