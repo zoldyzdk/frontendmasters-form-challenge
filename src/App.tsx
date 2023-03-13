@@ -11,6 +11,8 @@ function App() {
   const [year, setYear] = useState('00');
   const [cvc, setCvc] = useState('000');
   const [validChar, setValidChar] = useState(true);
+  const [validMonthYear, setValidMonthYear] = useState(true);
+  const [validCvc, setValidCvc] = useState(true);
 
   //Func to identify the actual size of the screen
   useEffect(() => {
@@ -60,12 +62,27 @@ function App() {
 
     const formJson = Object.fromEntries(formData.entries())
 
+    //Testing the Card Number characters
     const regexCardNumber: RegExp = /^[0-9_\s]+$/;
     console.log(regexCardNumber.test(formJson.number.toString()))
     if (!regexCardNumber.test(formJson.number.toString())) {
       setValidChar(false)
     } else {
       setValidChar(true)
+    }
+
+    //Testing if inputs Month/Year are empty
+    if (!formJson.month) {
+      setValidMonthYear(false)
+    } else {
+      setValidMonthYear(true)
+    }
+
+    //Testing if input CVC is empty
+    if (!formJson.cvc) {
+      setValidCvc(false)
+    } else {
+      setValidCvc(true)
     }
 
     console.log(formJson)
@@ -122,7 +139,6 @@ function App() {
             CARDHOLDER NAME
             <input
               onChange={(e) => handleChangeName(e.target.value)}
-              // value={name}
               name="name"
               placeholder="e.g. Jane Appleseed"
               className=" border-2 border-solid w-80 h-11 rounded-lg text-base pl-3"
@@ -133,9 +149,7 @@ function App() {
             CARD NUMBER
             <InputMask
               mask={"**** **** **** ****"}
-              // slotChar={"                   "}
               onChange={(e) => handleChangeNumber(e.target.value)}
-              // value={(cardNumber == '0000 0000 0000 0000') ? '' : cardNumber}
               maxLength={19}
               name="number"
               placeholder="e.g. 1234 5678 9123 0000"
@@ -143,7 +157,7 @@ function App() {
             />
             {
               (!validChar && <div
-                  className=" text-red-500">
+                  className=" text-red-500 mt-1">
                 Wrong format, numbers only
               </div>)
             }
@@ -172,6 +186,12 @@ function App() {
                   className=" border-2 border-solid w-[4.5rem] h-11 rounded-lg text-base pl-3"
                 />
               </div>
+              {
+                (!validMonthYear && <div
+                    className=" text-red-500 mt-1">
+                  Can't be blank
+                </div>)
+              }
             </label>
             <label className="flex flex-col ml-2">
               CVC
@@ -183,6 +203,12 @@ function App() {
                 placeholder="e.g. 123"
                 className=" border-2 border-solid w-[10rem] h-11 rounded-lg text-base pl-3"
               />
+              {
+                (!validCvc && <div
+                    className=" text-red-500 mt-1">
+                  Can't be blank
+                </div>)
+              }
             </label>
           </div>
           <div className="pb-8">
