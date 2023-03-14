@@ -1,21 +1,21 @@
 import {useState, useEffect} from 'react'
 import { InputMask } from "primereact/inputmask";
 import './App.css'
-import {Nullable} from "primereact/ts-helpers";
 
 function App() {
   const [windowSize, setWindowSize] = useState(window.innerWidth);
-  const [name, setName] = useState('Jane Appleseed');
+  const [name, setName] = useState('');
   const [cardNumber, setCardNumber] = useState('0000 0000 0000 0000');
   const [month, setMonth] = useState('00');
   const [year, setYear] = useState('00');
   const [cvc, setCvc] = useState('000');
-  const [validChar, setValidChar] = useState(true);
+  const [nameErr, setNameErr] = useState("");
+  const [numberErr, setNumberErr] = useState("");
   const [validMonthYear, setValidMonthYear] = useState(true);
   const [validCvc, setValidCvc] = useState(true);
+
   const [formHidden, setFormHidden] = useState('')
   const [thankHidden, setThankHidden] = useState('hidden')
-  const [valid, setValid] = useState({validNumber: '', validMonth: '', validYear: '' })
 
   //Func to identify the actual size of the screen
   useEffect(() => {
@@ -37,7 +37,6 @@ function App() {
   };
 
   const handleChangeNumber = (e: any) => {
-
     setCardNumber(e);
   }
   const handleChangeMonth = (e: any) => {
@@ -57,44 +56,35 @@ function App() {
 
     const formJson = Object.fromEntries(formData.entries())
 
-    //Testing the Card Number characters
-    const regexCardNumber: RegExp = /^[0-9_\s]+$/;
-    console.log(regexCardNumber.test(formJson.number.toString()))
-    if (!regexCardNumber.test(formJson.number.toString())) {
-      setValidChar(false)
-      setValid({validNumber: 'border-red-500', validMonth: valid.validMonth, validYear: valid.validYear})
-    } else {
-      setValidChar(true)
-      setValid({validNumber: '', validMonth: valid.validMonth, validYear: valid.validYear})
-    }
-
-    //Testing if inputs Month/Year are empty
-    if (!formJson.month || !formJson.year) {
-      setValidMonthYear(false)
-
-    } else {
-      setValidMonthYear(true)
-    }
-
-    //Testing if input CVC is empty
-    if (!formJson.cvc) {
-      setValidCvc(false)
-
-    } else {
-      setValidCvc(true)
-    }
-
-    if (!validChar && !validMonthYear && !validCvc) {
-      setFormHidden('hidden')
-      setThankHidden('block')
-    }
-    console.log(formJson)
+    validateForm(formJson, 0, 0) //Validate do CARD NAME
 
   }
 
-  const handleContinue = () => {
-    setFormHidden('flex')
-    setThankHidden('hidden')
+  const showErr = (id: number, msg: string) => {
+    switch (id) {
+      case 0 :
+          setNameErr(msg)
+          break;
+
+      // case 1 :
+      default: break;
+
+    }
+  }
+
+  //NEW FUNCTION WITH NEW LOGIC TO VALIDATE THE FORM DATA
+  const validateForm = (input: { [p: string]: File | string }, error: number, wordlenght: number) => {
+
+    if (!wordlenght) {
+
+      if (!input.name) {
+        showErr(0, "Can't be blank")
+      } else {
+        showErr(0, "")
+      }
+
+    }
+
   }
 
   return (
@@ -144,32 +134,34 @@ function App() {
           onSubmit={handleSubmit}
           className={"flex flex-col items-center mt-20 gap-6 max-w-[300px] md:max-w-5xl " + formHidden}
         >
-          {/*//todo COLOCAR FORM-GROUP PARA CADA GRUPO DE INPUTS*/}
           <label className="text-dark-violet flex flex-col">
             CARDHOLDER NAME
             <input
+
               onChange={(e) => handleChangeName(e.target.value)}
               name="name"
               placeholder="e.g. Jane Appleseed"
+              value={name}
               className=" border-2 border-solid w-80 h-11 rounded-lg text-base pl-3"
             />
+            <span className={"text-red-500 mt-1"}>{nameErr}</span>
           </label>
           {/*todo COLOCAR A SPAN DO ERRO DE DIGITACAO DO INPUT*/}
           <label className="text-dark-violet flex flex-col">
             CARD NUMBER
             <InputMask
+              required
               mask={"**** **** **** ****"}
               onChange={(e) => handleChangeNumber(e.target.value)}
               maxLength={19}
               name="number"
               placeholder="e.g. 1234 5678 9123 0000"
-              className={valid.validNumber + " border-2 border-solid w-80 h-11 rounded-lg text-base pl-3 " }
+              className={" border-2 border-solid w-80 h-11 rounded-lg text-base pl-3 " }
             />
-            {!validChar && (
-              <div className=" text-red-500 mt-1">
-                Wrong format, numbers only
-              </div>
-            )}
+            <div className=" text-red-500 mt-1">
+              {numberErr}
+            </div>
+
           </label>
           {/*todo COLOCAR A SPAN DO ERRO DE DIGITACAO DO INPUT*/}
           <div className="flex w-80 border-box">
@@ -177,6 +169,7 @@ function App() {
               EXP. DATE (MM/YY)
               <div className="flex gap-[11px]">
                 <InputMask
+                  required
                   mask={"99"}
                   slotChar={"  "}
                   onChange={(e) => handleChangeMonth(e.target.value)}
@@ -186,6 +179,7 @@ function App() {
                 />
                 {/*todo COLOCAR A SPAN DO ERRO DE DIGITACAO DO INPUT*/}
                 <InputMask
+                  required
                   mask={"99"}
                   slotChar={"  "}
                   onChange={(e) => handleChangeYear(e.target.value)}
@@ -201,6 +195,7 @@ function App() {
             <label className="flex flex-col ml-2">
               CVC
               <InputMask
+                required
                 mask={"999"}
                 slotChar={"   "}
                 onChange={(e) => handleChangeCvc(e.target.value)}
